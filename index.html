@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reserva tu cita — Lutamity Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pearl:     #FDF6F0;
+      --blush:     #F0E4DA;
+      --gold:      #C9A96E;
+      --gold-dark: #A8865A;
+      --ink:       #1A1A1A;
+      --muted:     #6B5E54;
+      --border:    #D4B8A8;
+      --white:     #FFFFFF;
+      --error:     #B05050;
+    }
+
+    body {
+      background-color: var(--pearl);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      max-width: 480px;
+      width: 100%;
+      padding: 3rem 2.5rem;
+      box-shadow: 0 4px 32px rgba(180, 140, 100, 0.08);
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 2rem; }
+
+    .divider {
+      display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--gold); opacity: 0.5;
+    }
+    .divider-diamond {
+      width: 6px; height: 6px; background: var(--gold);
+      transform: rotate(45deg); flex-shrink: 0;
+    }
+
+    .brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink);
+    }
+    .brand-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.85rem; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--muted); margin-top: 0.2rem;
+    }
+
+    /* ── Step indicator ── */
+    .step-indicator {
+      display: flex; justify-content: center;
+      align-items: center; gap: 0.4rem; margin-bottom: 2rem;
+    }
+    .step-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border); transition: background 0.3s;
+    }
+    .step-dot.active { background: var(--gold); width: 18px; border-radius: 4px; }
+    .step-dot.done { background: var(--gold-dark); }
+
+    /* ── Step panels ── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-label {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem;
+      text-align: center;
+    }
+
+    /* ── Option cards (servicios, empleadas) ── */
+    .option-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .option-card {
+      background: var(--pearl); border: 1px solid var(--border);
+      padding: 0.8rem 1rem; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex; justify-content: space-between; align-items: center;
+      border-radius: 1px;
+    }
+    .option-card:hover { border-color: var(--gold); }
+    .option-card.selected { border-color: var(--gold); background: var(--white); }
+    .option-card.selected .option-check { opacity: 1; }
+
+    .option-name {
+      font-size: 0.88rem; font-weight: 400; color: var(--ink);
+    }
+    .option-meta {
+      font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem;
+    }
+    .option-check {
+      color: var(--gold); font-size: 1rem; opacity: 0; transition: opacity 0.2s;
+    }
+
+    /* ── Date picker ── */
+    .date-wrap { margin-bottom: 1.5rem; }
+    label.field-label {
+      display: block; font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.5rem;
+    }
+    input[type="date"] {
+      width: 100%; background: var(--pearl);
+      border: 1px solid var(--border); border-radius: 1px;
+      padding: 0.75rem 1rem; font-family: 'Inter', sans-serif;
+      font-size: 0.9rem; font-weight: 300; color: var(--ink);
+      outline: none; transition: border-color 0.2s; -webkit-appearance: none;
+    }
+    input[type="date"]:focus { border-color: var(--gold); background: var(--white); }
+
+    /* ── Slots grid ── */
+    .slots-header {
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem;
+    }
+    .slots-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem; max-height: 260px; overflow-y: auto;
+      padding-right: 2px;
+    }
+    .slot-btn {
+      background: var(--pearl); border: 1px solid var(--border);
+      padding: 0.55rem 0.3rem; cursor: pointer; text-align: center;
+      transition: all 0.2s; border-radius: 1px; line-height: 1.3;
+    }
+    .slot-btn:hover { border-color: var(--gold); }
+    .slot-btn.selected { background: var(--ink); color: var(--white); border-color: var(--ink); }
+    .slot-time { font-size: 0.85rem; font-weight: 400; display: block; }
+    .slot-who { font-size: 0.62rem; color: var(--muted); display: block; margin-top: 0.1rem; }
+    .slot-btn.selected .slot-who { color: var(--border); }
+
+    /* ── Personal data ── */
+    .form-group { margin-bottom: 1.3rem; }
+    input[type="text"], input[type="tel"] {
+      width: 100%; background: var(--pearl);
+      border: 1px solid var(--border); border-radius: 1px;
+      padding: 0.75rem 1rem; font-family: 'Inter', sans-serif;
+      font-size: 0.9rem; font-weight: 300; color: var(--ink);
+      outline: none; transition: border-color 0.2s; -webkit-appearance: none;
+    }
+    input[type="text"]:focus, input[type="tel"]:focus {
+      border-color: var(--gold); background: var(--white);
+    }
+    input::placeholder { color: var(--border); }
+    .required-mark { color: var(--gold); margin-left: 2px; }
+    .field-error {
+      font-size: 0.75rem; color: var(--error);
+      margin-top: 0.3rem; display: none;
+    }
+    .field-error.visible { display: block; }
+
+    /* ── Resumen previo confirmación ── */
+    .resumen {
+      background: var(--pearl); border: 1px solid var(--border);
+      border-radius: 1px; padding: 1rem 1.1rem; margin-bottom: 1.5rem;
+      font-size: 0.82rem; color: var(--ink); line-height: 1.9;
+    }
+    .resumen-row { display: flex; gap: 0.5rem; }
+    .resumen-icon { color: var(--gold); flex-shrink: 0; }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%; background: var(--ink); color: var(--white);
+      border: none; padding: 0.9rem 1.5rem;
+      font-family: 'Inter', sans-serif; font-size: 0.75rem;
+      font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s; margin-top: 0.5rem;
+      border-radius: 1px;
+    }
+    .btn:hover { background: var(--gold-dark); }
+    .btn:disabled { background: var(--border); cursor: not-allowed; }
+
+    .btn-back {
+      width: 100%; background: transparent; color: var(--muted);
+      border: 1px solid var(--border); padding: 0.75rem 1.5rem;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; border-radius: 1px;
+    }
+    .btn-back:hover { border-color: var(--gold); color: var(--ink); }
+
+    /* ── Loading ── */
+    .loading {
+      text-align: center; padding: 1.5rem;
+      font-size: 0.82rem; color: var(--muted);
+      font-style: italic; font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; letter-spacing: 0.05em;
+    }
+
+    /* ── No slots ── */
+    .no-slots {
+      text-align: center; padding: 1.5rem;
+      font-size: 0.85rem; color: var(--muted); line-height: 1.7;
+    }
+
+    /* ── Success panel ── */
+    .success-panel { display: none; text-align: center; padding: 0.5rem 0; }
+    .success-panel.visible { display: block; }
+    .success-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem;
+    }
+    .success-text { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+    .success-detail {
+      background: var(--pearl); border: 1px solid var(--border);
+      border-radius: 1px; padding: 0.9rem 1.1rem; margin: 1.25rem 0;
+      font-size: 0.82rem; color: var(--ink); line-height: 2;
+      text-align: left;
+    }
+
+    /* ── WhatsApp fallback ── */
+    .wa-fallback {
+      text-align: center; margin-top: 1.75rem;
+      padding-top: 1.25rem; border-top: 1px solid var(--blush);
+      font-size: 0.76rem; color: var(--muted); line-height: 1.7;
+    }
+    .wa-link {
+      display: inline-block; margin-top: 0.5rem;
+      color: var(--gold-dark); text-decoration: none;
+      font-weight: 500; font-size: 0.76rem; letter-spacing: 0.08em;
+      text-transform: uppercase; border-bottom: 1px solid var(--gold);
+      padding-bottom: 1px; transition: color 0.2s;
+    }
+    .wa-link:hover { color: var(--ink); }
+
+    /* ── Footer ── */
+    .footer-note {
+      text-align: center; font-size: 0.72rem;
+      color: var(--border); margin-top: 2rem; letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 2.5rem 1.5rem; }
+      .brand { font-size: 1.5rem; }
+      .slots-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="divider"><div class="divider-diamond"></div></div>
+    <div class="brand">Lutamity</div>
+    <div class="brand-sub">Studio · Salón de Uñas</div>
+    <div class="divider" style="margin-top:1rem;margin-bottom:0"><div class="divider-diamond"></div></div>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-dot active" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+  </div>
+
+  <!-- ─── STEP 1: Servicio ─── -->
+  <div class="step-panel active" id="step1">
+    <div class="step-label">Paso 1 de 4 · Elige tu servicio</div>
+    <div id="servicios-loading" class="loading">Cargando servicios…</div>
+    <div id="servicios-list" class="option-list" style="display:none"></div>
+    <button class="btn" id="btn1" onclick="goStep(2)" disabled>Continuar</button>
+  </div>
+
+  <!-- ─── STEP 2: Fecha ─── -->
+  <div class="step-panel" id="step2">
+    <div class="step-label">Paso 2 de 4 · Elige una fecha</div>
+    <div class="date-wrap">
+      <label class="field-label" for="fecha">Fecha deseada<span class="required-mark">*</span></label>
+      <input type="date" id="fecha" />
+    </div>
+    <div id="empleada-wrap" style="margin-bottom:1.3rem;">
+      <label class="field-label">Profesional (opcional)</label>
+      <div id="empleadas-list" class="option-list"></div>
+    </div>
+    <button class="btn" id="btn2" onclick="goStep(3)">Ver disponibilidad</button>
+    <button class="btn-back" onclick="goStep(1)">← Atrás</button>
+  </div>
+
+  <!-- ─── STEP 3: Hora ─── -->
+  <div class="step-panel" id="step3">
+    <div class="step-label">Paso 3 de 4 · Elige tu hora</div>
+    <div id="slots-header" class="slots-header"></div>
+    <div id="slots-container"></div>
+    <button class="btn" id="btn3" onclick="goStep(4)" disabled style="margin-top:1rem;">Continuar</button>
+    <button class="btn-back" onclick="goStep(2)">← Atrás</button>
+  </div>
+
+  <!-- ─── STEP 4: Datos personales ─── -->
+  <div class="step-panel" id="step4">
+    <div class="step-label">Paso 4 de 4 · Tus datos</div>
+
+    <div id="resumen-cita" class="resumen"></div>
+
+    <div class="form-group">
+      <label class="field-label" for="nombre">Nombre<span class="required-mark">*</span></label>
+      <input type="text" id="nombre" placeholder="Tu nombre completo" autocomplete="name" />
+      <div class="field-error" id="err-nombre">Por favor, introduce tu nombre.</div>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="telefono">Teléfono<span class="required-mark">*</span></label>
+      <input type="tel" id="telefono" placeholder="6XX XXX XXX" autocomplete="tel" />
+      <div class="field-error" id="err-tel">Introduce un teléfono válido (9 dígitos).</div>
+    </div>
+
+    <button class="btn" id="btn4" onclick="submitBooking()">Confirmar reserva</button>
+    <button class="btn-back" onclick="goStep(3)">← Atrás</button>
+  </div>
+
+  <!-- ─── SUCCESS ─── -->
+  <div class="success-panel" id="successPanel">
+    <div class="success-icon">✦</div>
+    <div class="success-title">¡Cita solicitada!</div>
+    <div id="success-detail" class="success-detail"></div>
+    <p class="success-text">
+      Te hemos enviado un WhatsApp con los detalles.<br>
+      Confirma tu cita antes del plazo indicado.
+    </p>
+  </div>
+
+  <!-- ─── WhatsApp fallback ─── -->
+  <div class="wa-fallback" id="waFallback" style="display:none;">
+    ¿No encuentras el hueco que buscas?<br>
+    <a class="wa-link" href="https://wa.me/34614337043?text=Hola%2C%20me%20gustaría%20reservar%20una%20cita%20en%20Lutamity%20Studio" target="_blank">
+      Escríbenos por WhatsApp
+    </a>
+  </div>
+
+  <div class="footer-note" id="footerNote">Alcalá de Henares · Madrid</div>
+
+</div>
+
+<script>
+  /* ── Configuración ── */
+  const API_BASE   = 'https://n8n.ianexosystems.com/webhook';
+  const API_KEY    = 'e8454ae0_8889_406f_b1ea_5f49ee4f4d7a';
+  const WA_NUMBER  = '34614337043';
+
+  /* ── Estado ── */
+  const state = {
+    step: 1,
+    servicio:  null,   // {id, nombre, precio, duracion_minutos}
+    empleada:  null,   // {id, display_name} — null = cualquiera
+    fecha:     null,   // 'YYYY-MM-DD'
+    slot:      null,   // {start_time, end_time, empleada_id, display_name}
+  };
+
+  /* ── API helpers ── */
+  async function apiGet(path) {
+    const res = await fetch(`${API_BASE}/${path}`, {
+      headers: { 'x-api-key': API_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  async function apiPost(path, body) {
+    const res = await fetch(`${API_BASE}/${path}`, {
+      method: 'POST',
+      headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  /* ── Utilidades ── */
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+  function formatFecha(yyyy_mm_dd) {
+    const [y, m, d] = yyyy_mm_dd.split('-').map(Number);
+    const dow = new Date(y, m - 1, d).getDay();
+    return `${DIAS[dow]} ${d} de ${MESES[m - 1]} de ${y}`;
+  }
+
+  function fechaMinima() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  function fechaMaxima() {
+    const d = new Date();
+    d.setDate(d.getDate() + 60);
+    return d.toISOString().split('T')[0];
+  }
+
+  /* ── Indicador de pasos ── */
+  function updateDots(step) {
+    for (let i = 1; i <= 4; i++) {
+      const dot = document.getElementById('dot' + i);
+      dot.className = 'step-dot' + (i === step ? ' active' : i < step ? ' done' : '');
+    }
+  }
+
+  /* ── Navegación entre pasos ── */
+  function goStep(n) {
+    if (n === 2 && !state.servicio) return;
+    if (n === 3 && !state.fecha)    return;
+    if (n === 4 && !state.slot)     return;
+
+    document.getElementById('step' + state.step).classList.remove('active');
+    state.step = n;
+    document.getElementById('step' + n).classList.add('active');
+    updateDots(n);
+    document.getElementById('waFallback').style.display = 'none';
+
+    if (n === 3) loadSlots();
+    if (n === 4) renderResumen();
+  }
+
+  /* ─────────────────────────────────────────────
+     STEP 1 — Cargar servicios
+  ───────────────────────────────────────────── */
+  async function initServicios() {
+    try {
+      const res = await apiGet('lutamity/servicios');
+      const servicios = (res.servicios || []).filter(s => s.id);
+
+      document.getElementById('servicios-loading').style.display = 'none';
+      const list = document.getElementById('servicios-list');
+      list.style.display = 'flex';
+
+      servicios.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        card.dataset.id = s.id;
+        card.innerHTML = `
+          <div>
+            <div class="option-name">${s.nombre}</div>
+            <div class="option-meta">${s.duracion_minutos} min · ${s.precio ? Number(s.precio).toFixed(0) + ' €' : ''}</div>
+          </div>
+          <span class="option-check">✦</span>`;
+        card.addEventListener('click', () => selectServicio(s, card));
+        list.appendChild(card);
+      });
+
+      if (servicios.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">No hay servicios disponibles.</p>';
+      }
+    } catch (e) {
+      document.getElementById('servicios-loading').textContent = 'Error al cargar servicios. Recarga la página.';
+    }
+  }
+
+  function selectServicio(s, card) {
+    document.querySelectorAll('#servicios-list .option-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    state.servicio = s;
+    state.slot = null;
+    document.getElementById('btn1').disabled = false;
+    loadEmpleadasForStep2();
+  }
+
+  /* ─────────────────────────────────────────────
+     STEP 2 — Empleadas (para filtro opcional)
+  ───────────────────────────────────────────── */
+  async function loadEmpleadasForStep2() {
+    const wrap = document.getElementById('empleadas-list');
+    wrap.innerHTML = '<span style="font-size:.82rem;color:var(--muted)">Cargando…</span>';
+    try {
+      const res = await apiGet('lutamity/empleadas');
+      const empleadas = (res.empleadas || []).filter(e => {
+        if (!state.servicio) return true;
+        const ss = Array.isArray(e.servicios) ? e.servicios : [];
+        return ss.some(x => x && x.servicio_id === state.servicio.id);
+      });
+
+      wrap.innerHTML = '';
+
+      // Opción: cualquiera
+      const any = document.createElement('div');
+      any.className = 'option-card selected';
+      any.dataset.empId = '';
+      any.innerHTML = `
+        <div>
+          <div class="option-name">Sin preferencia</div>
+          <div class="option-meta">Primera disponible</div>
+        </div>
+        <span class="option-check">✦</span>`;
+      any.addEventListener('click', () => selectEmpleada(null, any));
+      wrap.appendChild(any);
+      state.empleada = null;
+
+      empleadas.forEach(e => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        card.dataset.empId = e.id;
+        card.innerHTML = `
+          <div>
+            <div class="option-name">${e.display_name || e.nombre}</div>
+            ${e.especialidad ? `<div class="option-meta">${e.especialidad}</div>` : ''}
+          </div>
+          <span class="option-check">✦</span>`;
+        card.addEventListener('click', () => selectEmpleada(e, card));
+        wrap.appendChild(card);
+      });
+    } catch (_) {
+      wrap.innerHTML = '';
+      state.empleada = null;
+    }
+  }
+
+  function selectEmpleada(emp, card) {
+    document.querySelectorAll('#empleadas-list .option-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    state.empleada = emp ? { id: emp.id, display_name: emp.display_name || emp.nombre } : null;
+    state.slot = null;
+  }
+
+  /* Fecha mínima/máxima */
+  function initFecha() {
+    const input = document.getElementById('fecha');
+    input.min = fechaMinima();
+    input.max = fechaMaxima();
+    if (!state.fecha) {
+      // Por defecto: mañana
+      const manana = new Date();
+      manana.setDate(manana.getDate() + 1);
+      state.fecha = manana.toISOString().split('T')[0];
+      input.value = state.fecha;
+    }
+    input.addEventListener('change', () => {
+      state.fecha = input.value;
+      state.slot = null;
+      document.getElementById('btn3').disabled = true;
+    });
+  }
+
+  /* ─────────────────────────────────────────────
+     STEP 3 — Cargar slots de disponibilidad
+  ───────────────────────────────────────────── */
+  async function loadSlots() {
+    const container = document.getElementById('slots-container');
+    const header    = document.getElementById('slots-header');
+    const btn3      = document.getElementById('btn3');
+
+    btn3.disabled = true;
+    state.slot = null;
+
+    const fechaStr = formatFecha(state.fecha);
+    header.textContent = fechaStr;
+    container.innerHTML = '<div class="loading">Comprobando disponibilidad…</div>';
+
+    const body = {
+      service_id:    state.servicio.id,
+      mode:          state.empleada ? 'specific_professional' : 'first_available',
+      preferred_date: state.fecha,
+    };
+    if (state.empleada) body.professional_id = state.empleada.id;
+
+    try {
+      const res = await apiPost('lutamity/disponibilidad', body);
+      const slots = res.data.slots || [];
+
+      if (slots.length === 0) {
+        container.innerHTML = `
+          <div class="no-slots">
+            No hay disponibilidad para esta fecha.<br>
+            <span style="font-size:.78rem;">Prueba con otra fecha u otra profesional.</span>
+          </div>`;
+        document.getElementById('waFallback').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('waFallback').style.display = 'none';
+      renderSlots(slots);
+
+    } catch (e) {
+      container.innerHTML = `<div class="no-slots">Error al cargar disponibilidad.<br>Inténtalo de nuevo.</div>`;
+      document.getElementById('waFallback').style.display = 'block';
+    }
+  }
+
+  function renderSlots(slots) {
+    const container = document.getElementById('slots-container');
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'slots-grid';
+
+    slots.forEach(slot => {
+      const hora = slot.start_time.split('T')[1].substring(0, 5);
+      const btn = document.createElement('button');
+      btn.className = 'slot-btn';
+      btn.innerHTML = `
+        <span class="slot-time">${hora}</span>
+        <span class="slot-who">${slot.display_name || ''}</span>`;
+      btn.addEventListener('click', () => selectSlot(slot, btn));
+      grid.appendChild(btn);
+    });
+
+    container.appendChild(grid);
+  }
+
+  function selectSlot(slot, btn) {
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.slot = slot;
+    document.getElementById('btn3').disabled = false;
+  }
+
+  /* ─────────────────────────────────────────────
+     STEP 4 — Resumen y datos personales
+  ───────────────────────────────────────────── */
+  function renderResumen() {
+    const hora = state.slot.start_time.split('T')[1].substring(0, 5);
+    document.getElementById('resumen-cita').innerHTML = `
+      <div class="resumen-row"><span class="resumen-icon">💅</span> ${state.servicio.nombre}</div>
+      <div class="resumen-row"><span class="resumen-icon">👤</span> ${state.slot.display_name}</div>
+      <div class="resumen-row"><span class="resumen-icon">📅</span> ${formatFecha(state.fecha)}</div>
+      <div class="resumen-row"><span class="resumen-icon">⏰</span> ${hora}h</div>`;
+  }
+
+  function validateDatos() {
+    const nombre   = document.getElementById('nombre').value.trim();
+    const telefono = document.getElementById('telefono').value.trim().replace(/\s/g, '');
+    let ok = true;
+
+    document.getElementById('err-nombre').classList.toggle('visible', !nombre);
+    if (!nombre) ok = false;
+
+    const telOk = /^[6789]\d{8}$/.test(telefono);
+    document.getElementById('err-tel').classList.toggle('visible', !telOk);
+    if (!telOk) ok = false;
+
+    return ok;
+  }
+
+  /* ─────────────────────────────────────────────
+     SUBMIT — Crear cita
+  ───────────────────────────────────────────── */
+  async function submitBooking() {
+    if (!validateDatos()) return;
+
+    const btn4 = document.getElementById('btn4');
+    btn4.disabled = true;
+    btn4.textContent = 'Enviando…';
+
+    const telefono = document.getElementById('telefono').value.trim().replace(/\s/g, '');
+    const hora     = state.slot.start_time.split('T')[1].substring(0, 5);
+
+    const payload = {
+      service_id:     state.servicio.id,
+      mode:           'specific_professional',
+      preferred_date: state.fecha,
+      preferred_time: hora,
+      phone:          telefono,
+      professional_id: state.slot.empleada_id,
+      nombre:         document.getElementById('nombre').value.trim()
+    };
+
+    try {
+      const { ok, status, data } = await apiPost('lutamity/citas', payload);
+
+      if (ok || status === 201) {
+        showSuccess();
+      } else if (status === 409) {
+        btn4.disabled = false;
+        btn4.textContent = 'Confirmar reserva';
+        alert('Este hueco ya no está disponible. Vuelve a elegir hora.');
+        goStep(3);
+      } else {
+        throw new Error('HTTP ' + status);
+      }
+    } catch (e) {
+      btn4.disabled = false;
+      btn4.textContent = 'Confirmar reserva';
+      alert('Ha ocurrido un error. Por favor, inténtalo de nuevo o escríbenos por WhatsApp.');
+    }
+  }
+
+  function showSuccess() {
+    // Ocultar todo
+    for (let i = 1; i <= 4; i++) document.getElementById('step' + i).classList.remove('active');
+    document.getElementById('stepIndicator').style.display = 'none';
+    document.getElementById('waFallback').style.display = 'none';
+
+    const hora = state.slot.start_time.split('T')[1].substring(0, 5);
+    document.getElementById('success-detail').innerHTML = `
+      <strong>${state.servicio.nombre}</strong><br>
+      ${state.slot.display_name}<br>
+      ${formatFecha(state.fecha)} · ${hora}h`;
+
+    document.getElementById('successPanel').classList.add('visible');
+  }
+
+  /* ─────────────────────────────────────────────
+     INIT
+  ───────────────────────────────────────────── */
+  initServicios();
+  initFecha();
+
+</script>
+
+</body>
+</html>
